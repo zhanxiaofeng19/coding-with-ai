@@ -28,36 +28,57 @@
 │   ├── standards/               # 详细规范文档
 │   ├── examples/                # 示例样本库
 │   └── prompts/                 # Prompt 模式库
+├── skill/                       # Cursor Skill（一键安装用）
+│   └── heytea-standards/
+│       ├── SKILL.md             # Skill 入口
+│       └── scripts/             # 自动化脚本
 └── bootstrap/                   # 跨项目引入指南
 ```
 
-## 如何在业务项目中引入
+## 快速开始（一键安装）
 
-### 方式一：Git Submodule（推荐）
+**1. 安装 Skill（仅需一次）**
+
+```bash
+git clone git@github.com:heytea/coding-with-ai.git ~/coding-with-ai
+cp -r ~/coding-with-ai/skill/heytea-standards ~/.cursor/skills/
+```
+
+**2. 在业务项目中使用**
+
+打开 Cursor，对 agent 说"引入开发规范"，自动完成全部初始化。
+
+或手动执行：
+
+```bash
+cd your-business-project
+bash ~/.cursor/skills/heytea-standards/scripts/setup.sh
+```
+
+**3. 填写项目信息** — 编辑 `AGENTS.md` 和 `docs/context/` 下的文件。
+
+详细指南见 [bootstrap/project-import-guide.md](bootstrap/project-import-guide.md)。
+
+---
+
+## 其他引入方式
+
+### Git Submodule
 
 ```bash
 cd your-business-project
 git submodule add <本仓库地址> .ai-standards
+mkdir -p .cursor/rules
+cp .ai-standards/.cursor/rules/*.mdc .cursor/rules/
 ```
 
-然后在业务项目中创建 `.cursor/rules/00-import-standards.mdc`：
-
-```markdown
----
-description: 引入团队 AI-Coding 规范
-alwaysApply: true
----
-本项目遵循 .ai-standards/ 下的全部规范。
-Agent 必须优先读取 .ai-standards/AGENTS.md 获取完整规范索引。
-```
-
-### 方式二：Git Subtree
+### Git Subtree
 
 ```bash
 git subtree add --prefix=.ai-standards <本仓库地址> main --squash
 ```
 
-### 方式三：直接复制
+### 直接复制
 
 将本仓库的 `.cursor/rules/` 和 `specs/` 目录复制到业务项目中。
 
@@ -70,10 +91,18 @@ git subtree add --prefix=.ai-standards <本仓库地址> main --squash
 
 ## 如何升级
 
+**Skill 方式（推荐）**
+
 ```bash
-cd .ai-standards
-git pull origin main
-cd ..
+bash ~/.cursor/skills/heytea-standards/scripts/upgrade.sh
+```
+
+或对 agent 说"升级规范"。
+
+**Submodule 方式**
+
+```bash
+cd .ai-standards && git pull origin main && cd ..
 git add .ai-standards
 git commit -m "chore: upgrade ai-standards"
 ```
