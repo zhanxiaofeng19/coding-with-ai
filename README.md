@@ -40,7 +40,7 @@
 **1. 安装 Skill（仅需一次）**
 
 ```bash
-git clone git@github.com:heytea/coding-with-ai.git ~/coding-with-ai
+git clone https://github.com/zhanxiaofeng19/coding-with-ai.git ~/coding-with-ai
 cp -r ~/coding-with-ai/skill/heytea-standards ~/.cursor/skills/
 ```
 
