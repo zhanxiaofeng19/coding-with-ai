@@ -1,0 +1,56 @@
+---
+description: 后端分层架构约束 — Controller/Service/Manager/Mapper 职责边界
+alwaysApply: true
+---
+
+# 后端分层架构
+
+## 分层职责
+
+### Entrance 层（适配层）
+- 职责：参数校验、协议转换、调用 Service
+- 包含：Controller（HTTP）、Consumer（MQ）、Scheduler（定时任务）
+- 禁止：包含业务逻辑、直接调用 Repository/Mapper、捕获业务异常
+- 规则：一个 Controller 方法只调用一个 Service 方法
+
+### Service 层（应用层）
+- 职责：业务逻辑编排、事务管理、用例实现
+- 禁止：包含 HTTP/RPC 协议细节、直接操作缓存（委托给 Infrastructure 层）
+- 规则：必须无状态，不允许类级别的可变字段
+- 规则：事务注解只加在 Service 层
+
+### Domain 层（领域层）
+- 职责：领域模型定义、业务规则、实体行为
+- 包含：Entity、DTO、VO、BO、Enum
+- 规则：按业务模块划分子包（如 domain/member/、domain/coupon/）
+- 规则：领域对象不依赖 Spring 框架
+
+### Infrastructure 层（基础设施层）
+- 职责：技术实现细节、外部服务对接、数据访问、中间件封装
+- 包含：Repository（数据访问）、Client（外部服务）、MQ/Redis 配置、工具类、异常定义、常量
+- 规则：Infrastructure 不依赖 Service，只被 Service 调用
+
+## 依赖方向
+
+```
+Entrance → Service → Domain
+                  → Infrastructure
+```
+
+- 禁止反向依赖
+- Entrance 不能直接调用 Infrastructure
+- Domain 层不依赖 Infrastructure（纯领域模型）
+- Service 层协调 Domain 和 Infrastructure
+
+## 事务规则
+- 事务注解只在 Service 层
+- 事务范围最小化
+- 事务内禁止远程调用（RPC、HTTP、MQ 发送）
+- 需要远程调用的场景使用本地消息表或事务后置事件
+- 状态扭转通过检查 + 任务补偿保证最终一致性
+- 只读操作标注 @Transactional(readOnly = true)
+
+## 依赖注入
+- 使用构造器注入，禁止 @Autowired 字段注入
+- 使用 @RequiredArgsConstructor（Lombok）简化
+- 可选依赖使用 setter 注入

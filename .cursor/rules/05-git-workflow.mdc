@@ -1,0 +1,74 @@
+---
+description: Git 工作流规范 — 分支、Commit、PR 规则
+alwaysApply: true
+---
+
+# Git 工作流规范
+
+## 分支命名
+
+| 分支类型 | 格式 | 示例 |
+|---------|------|------|
+| 主分支 | main / master | main |
+| 开发分支 | develop | develop |
+| 功能分支 | feature/p_{蓝鲸编码}-short-desc | feature/p_23123-add-member-api |
+| 修复分支 | fix/p_{蓝鲸编码}-short-desc | fix/p_23124-null-pointer |
+| 热修分支 | hotfix/p_{蓝鲸编码}-short-desc | hotfix/p_23125-callback-retry |
+| 发布分支 | release/vX.Y.Z | release/v1.2.0 |
+
+创建分支时必须关联蓝鲸需求编码（格式：p_XXXXX）。
+
+## Commit Message 格式
+
+格式：`type(scope): 中文描述`
+
+### Type 枚举
+- feat：新功能
+- fix：Bug 修复
+- refactor：重构（不改变外部行为）
+- perf：性能优化
+- test：测试
+- docs：文档
+- chore：构建/工具/依赖变更
+- ci：CI/CD 变更
+- revert：回滚
+
+### Scope
+模块名，如 member / coupon / product / store
+
+### 示例
+```
+feat(member): 新增会员等级查询接口
+fix(coupon): 修复重复领券问题
+refactor(member): 提取积分计算逻辑到独立服务
+perf(product): 商品详情增加 Redis 缓存
+```
+
+### 规则
+- 描述使用中文
+- 不超过 72 个字符
+- Body 中关联蓝鲸需求号：`Refs: p_23123`
+
+## Pull Request 规则
+
+### PR 标题
+格式：`type(scope): 中文描述 [p_XXXXX]`
+
+### PR 描述必须包含
+- **背景**：为什么需要这个改动
+- **改动点**：具体改了什么
+- **影响范围**：涉及哪些模块/服务
+- **测试方式**：如何验证
+- **回滚方案**：出问题怎么回退
+
+### PR 约束
+- 单个 PR 不超过 500 行（不含测试和自动生成代码）
+- DDL 变更必须独立 PR
+- 配置变更必须独立 PR
+- 至少 1 人 Review 通过才能合并
+- CI 门禁必须通过（编译 + 单测）
+
+### 合并策略
+- 功能分支合并到 develop：Squash Merge
+- release 合并到 main：Merge Commit
+- hotfix 合并到 main：Merge Commit + cherry-pick 到 develop

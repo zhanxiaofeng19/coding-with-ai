@@ -1,0 +1,102 @@
+---
+description: 代码生成约定 — 包结构、命名、错误码、公共基类
+alwaysApply: true
+---
+
+# 代码生成约定
+
+## 包结构
+
+```
+com.heytea.{project}
+├── entrance             // 适配层：对外接口入口
+│   ├── controller       // RESTful 接口
+│   ├── scheduler        // 定时任务调度接口（XXL-Job）
+│   └── consumer         // MQ 消费者接口
+├── service              // 应用层：业务编排、用例实现
+│   └── impl
+├── domain               // 领域层：领域模型和业务逻辑，按模块划分子包
+│   ├── {模块名}
+│   │   ├── entity       // 数据库实体
+│   │   ├── dto          // 数据传输对象
+│   │   ├── vo           // 视图对象（面向前端）
+│   │   ├── bo           // 业务对象（service 内部流转）
+│   │   └── enums        // 枚举定义
+│   └── ...
+└── infrastructure       // 基础设施层
+    ├── constant         // 常量定义
+    ├── exceptions       // 异常定义
+    ├── config           // Spring 配置类
+    ├── utils            // 工具类
+    ├── mq               // MQ 配置与生产者封装
+    ├── redis             // Redis 配置
+    ├── client           // 外部服务客户端（Feign / HTTP）
+    └── repository       // 数据访问封装（Mapper / DAO）
+```
+
+项目名命名规则：如项目名为 manager-member-premium，则 project = manager.member.premium
+
+## 命名约定
+
+| 类型 | 命名规则 | 示例 |
+|------|---------|------|
+| Controller | XxxController | MemberController |
+| Service 接口 | XxxService | MemberService |
+| Service 实现 | XxxServiceImpl | MemberServiceImpl |
+| Consumer | XxxConsumer | MemberPointConsumer |
+| Scheduler | XxxScheduler | MemberExpireScheduler |
+| Mapper | XxxMapper | MemberMapper |
+| Entity | XxxEntity | MemberEntity |
+| DTO | XxxDTO / XxxReqDTO / XxxRespDTO | CreateMemberReqDTO |
+| VO | XxxVO | MemberDetailVO |
+| BO | XxxBO | MemberCalculateBO |
+| Config | XxxConfig / XxxProperties | RedisConfig |
+| 常量 | XxxConstants | MemberConstants |
+| 枚举 | XxxEnum | MemberStatusEnum |
+| 异常 | XxxException | MemberNotFoundException |
+| Event | XxxEvent | MemberCreatedEvent |
+| Client | XxxClient | CouponClient |
+| Repository | XxxRepository | MemberRepository |
+
+## 错误码规则
+
+格式：`应用领域(1位) + 应用标识(3位) + 错误类型(1位) + 预留位(1位) + 错误码(3位)`
+
+```
+示例: 5_660_1_0_001
+
+[5]   [660]   [1]    [0]   [001]
+ ↑      ↑      ↑      ↑      ↑
+ 应     应     错     预     错
+ 用     用     误     留     误
+ 领     标     类     位     码
+ 域     识     型    (1位)  (3位)
+(1位)  (3位)  (1位)
+```
+
+- 应用标识：对应 Apollo 项目 ID
+- 错误类型：0 = 系统错误，其他 = 业务错误
+- 系统级异常定义在 `SystemErrorEnum.java`
+- 业务异常定义在 `BizErrorEnum.java`
+- 一个应用的错误码在 000~999 之间分配
+
+## 公共基类（来源：heytea-spring-boot-core）
+
+| 用途 | 类名 | 说明 |
+|------|------|------|
+| 统一响应 | BaseResult&lt;T&gt; | 包含 code, message, data |
+| 分页请求 | 自定义 Request extends BasePageForm | pageNum, pageSize |
+| 分页响应 | BasePageVO&lt;T&gt; | list, total, pageNum, pageSize |
+| 业务异常 | BizException | 业务规则不满足时抛出 |
+| 系统异常 | SystemException | 系统内部错误时抛出 |
+| 分布式ID | HeyteaUidGenerator.generateUid() | 雪花算法 |
+| Redis 缓存 | HeyteaCache | 已封装序列化、前缀、TTL |
+
+## 编码风格
+- 优先构造器注入，禁止字段注入
+- Entrance 层不含业务逻辑，只做参数校验和协议转换
+- Service 必须无状态
+- 方法参数超过 3 个时使用对象封装
+- 禁止在循环中进行远程调用或数据库查询
+- 集合操作优先使用 Stream API，但避免过度嵌套
+- 外部服务调用统一通过 infrastructure/client 层封装

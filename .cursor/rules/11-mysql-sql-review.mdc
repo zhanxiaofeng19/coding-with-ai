@@ -1,0 +1,49 @@
+---
+description: SQL 编写与 Review 规范 — 查询、更新、事务、性能
+alwaysApply: true
+---
+
+# SQL 编写规范
+
+## 查询规范
+- 禁止 SELECT *，必须显式列出需要的字段
+- WHERE 条件必须命中索引，无法命中时必须说明原因和替代方案
+- JOIN 不超过 3 张表
+- 子查询优先改写为 JOIN
+- ORDER BY 字段必须有索引支持
+- LIMIT 分页超过 10000 行时必须使用游标分页
+- 禁止在 WHERE 中对索引字段使用函数或隐式类型转换
+
+## 游标分页示例
+```sql
+-- 禁止（深分页）
+SELECT * FROM t_order LIMIT 100000, 20;
+
+-- 推荐（游标分页）
+SELECT * FROM t_order WHERE id > #{lastId} ORDER BY id ASC LIMIT 20;
+```
+
+## 更新规范
+- UPDATE / DELETE 必须带 WHERE 条件
+- 批量更新控制单批数量（建议 500~1000 条/批）
+- 批量操作之间加间隔，避免主从延迟
+- 使用乐观锁保护并发更新：WHERE version = #{version}
+
+## 事务规范
+- 事务范围最小化，只包含必须原子的操作
+- 事务内禁止远程调用
+- 长事务（> 1s）必须优化或拆分
+- 死锁场景必须有重试机制
+
+## 索引命中分析
+编写 SQL 时必须说明：
+- 使用了哪个索引
+- 扫描类型（ref / range / index 等）
+- 预估扫描行数
+
+## 禁止事项
+- 禁止全表扫描（除非表数据量 < 1000 行且不会增长）
+- 禁止 SELECT ... FOR UPDATE 大范围锁行
+- 禁止不带条件的 UPDATE / DELETE
+- 禁止隐式类型转换（如 WHERE varchar_col = 123）
+- 禁止在线上执行 ALTER TABLE ... ADD INDEX（使用 online DDL）

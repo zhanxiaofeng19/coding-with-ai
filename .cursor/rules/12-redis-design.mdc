@@ -1,0 +1,58 @@
+---
+description: Redis 数据建模规范 — Key 命名、数据结构选择、TTL、序列化
+alwaysApply: true
+---
+
+# Redis 数据建模规范
+
+## Key 命名规则
+格式：`{服务名}:{业务域}:{数据类型}:{业务标识}`
+
+示例：
+- `order:detail:str:{orderId}` — 订单详情缓存
+- `user:token:str:{userId}` — 用户 Token
+- `product:stock:hash:{productId}` — 商品库存
+- `ranking:daily:zset:{date}` — 日排行榜
+
+规则：
+- 全部小写，冒号分隔
+- 避免过长（总长 ≤ 128 字节）
+- 禁止包含特殊字符
+
+## 数据结构选择
+
+| 场景 | 推荐结构 | 说明 |
+|------|---------|------|
+| 简单 KV | STRING | 对象序列化为 JSON |
+| 对象部分字段 | HASH | 支持部分字段更新 |
+| 列表/队列 | LIST | 有序，支持范围查询 |
+| 去重集合 | SET | 无序去重 |
+| 排行榜/TopN | SORTED SET | 按分数排序 |
+| 位运算/签到 | BITMAP | 节省内存 |
+| 计数器 | STRING + INCR | 原子操作 |
+| 分布式锁 | STRING + SET NX EX | 见锁规范 |
+
+## TTL 规则
+- 所有缓存 key 必须设置 TTL，禁止不过期的缓存
+- TTL 添加随机抖动（基础 TTL * (1 + random(0, 0.1))），防止缓存雪崩
+- 热点数据 TTL 较短（5~30 min），冷数据 TTL 较长（1~24 h）
+- Token/Session 类 TTL 按业务要求设置
+
+## 序列化策略
+- 推荐 JSON 序列化（可读性好，跨语言兼容）
+- 对性能敏感的场景可用 Protobuf / MessagePack
+- 禁止使用 Java 原生序列化（安全风险 + 兼容性差）
+- 序列化后单个 value 大小 ≤ 10KB，超过需评估
+
+## Value 大小约束
+- String 类型 value ≤ 10KB
+- Hash 字段数 ≤ 128
+- List/Set/ZSet 元素数 ≤ 10000
+- 超过限制必须拆分或使用其他方案
+
+## 分布式锁规范
+- 使用 SET key value NX EX（或 Redisson）
+- 锁超时时间 > 业务执行时间的 2 倍
+- 必须在 finally 中释放锁
+- 释放时校验 value（防止误释放他人的锁）
+- 禁止用 SETNX + EXPIRE 两步操作（非原子）

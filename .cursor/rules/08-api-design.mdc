@@ -1,0 +1,64 @@
+---
+description: C 端接口设计规范 — 请求响应结构、错误码、幂等、版本、兼容性
+alwaysApply: true
+---
+
+# C 端接口设计规范
+
+## 统一响应结构
+
+```json
+{
+  "code": "SUCCESS",
+  "message": "操作成功",
+  "data": {},
+  "traceId": "xxx"
+}
+```
+
+- code：业务状态码（SUCCESS / 错误码）
+- message：人可读的描述
+- data：业务数据（失败时为 null）
+- traceId：链路追踪 ID
+
+## RESTful 约定
+- GET：查询，幂等
+- POST：创建/复杂查询
+- PUT：全量更新
+- PATCH：部分更新
+- DELETE：删除
+
+## 请求规范
+- 路径参数：资源标识（ID）
+- Query 参数：过滤/排序/分页
+- Body：创建/更新的数据
+- Header：鉴权信息、版本号、灰度标记
+
+## 幂等设计
+- GET/PUT/DELETE 天然幂等
+- POST 创建类接口必须支持幂等：
+  - 客户端生成请求 ID（requestId / idempotentKey）
+  - 服务端基于唯一键去重
+
+## 分页规范
+- 请求：pageNum（从1开始）、pageSize（默认20，最大100）
+- 响应：list、total、pageNum、pageSize
+- 深分页禁止 offset 方式，改用游标分页（lastId + limit）
+
+## 错误码规范
+- 使用业务错误码而非 HTTP 状态码传递业务信息
+- HTTP 状态码只用于传输层语义（200/400/401/403/404/500）
+- 错误响应必须包含 code + message + traceId
+
+## 兼容性规则
+- 响应字段只增不删
+- 枚举值只扩不缩
+- 字段类型不能变更
+- 废弃字段标注 @Deprecated 并在文档说明
+- 破坏性变更必须使用版本号（v1/v2 路径前缀）
+
+## 安全约束
+- 用户敏感信息（手机号、身份证）响应时脱敏
+- 不在 URL 中传递敏感参数
+- 列表接口必须有分页限制
+- 批量操作接口必须有数量限制

@@ -1,0 +1,57 @@
+---
+description: MySQL 表设计规范 — 建表、字段、索引、主键、审计字段
+alwaysApply: true
+---
+
+# MySQL 表设计规范
+
+## 建表规则
+- 必须使用 InnoDB 引擎
+- 字符集使用 utf8mb4，排序规则 utf8mb4_general_ci
+- 每张表必须有主键
+- 表名使用 snake_case，业务前缀 + 实体名：如 t_order, t_order_item
+- 单表行数预估超过 5000 万时必须考虑分表方案
+
+## 主键策略
+- 推荐使用分布式 ID（雪花算法 / Leaf）作为主键
+- 禁止使用自增 ID 作为分布式系统的主键
+- 主键类型使用 BIGINT UNSIGNED
+
+## 必备审计字段
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | bigint unsigned | 主键 |
+| created_time | datetime | 创建时间 |
+| updated_time | datetime | 更新时间（ON UPDATE CURRENT_TIMESTAMP） |
+| created_by | varchar(64) | 创建人 |
+| updated_by | varchar(64) | 更新人 |
+| deleted | tinyint(1) | 逻辑删除标记（0 未删除 / 1 已删除） |
+| version | int | 乐观锁版本号 |
+
+## 字段规则
+- 所有字段 NOT NULL，用默认值代替 NULL
+- 金额字段使用 BIGINT（单位：分），不用 DECIMAL
+- 状态/类型字段使用 TINYINT，配合代码枚举
+- 长文本使用 TEXT 且单独拆表
+- VARCHAR 长度按实际需要定义，不随意用 VARCHAR(255)
+- 时间类型使用 DATETIME，不用 TIMESTAMP（2038 年问题）
+
+## 索引规则
+- 索引名格式：idx_表名_字段名（普通索引）、uk_表名_字段名（唯一索引）
+- WHERE 条件字段必须有索引
+- 联合索引遵循最左前缀原则
+- 单表索引数量不超过 5 个
+- 禁止在低基数字段上单独建索引（如 status、deleted）
+- 覆盖索引优先
+
+## 分库分表预留
+- 分片键字段在初始设计时确定
+- 查询必须带分片键，避免全分片扫描
+- 全局唯一约束在分表场景下通过业务逻辑保证
+
+## 变更规则
+- DDL 变更使用 online-ddl 或 pt-osc
+- 字段变更顺序：先加新字段 → 部署新代码 → 迁移数据 → 删旧字段
+- 禁止直接修改字段类型
+- 索引变更在低峰期执行

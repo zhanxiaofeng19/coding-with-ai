@@ -1,0 +1,46 @@
+---
+description: 技术文档编写标准 — 所有技术文档必须遵循的结构和质量要求
+alwaysApply: true
+---
+
+# 技术文档标准
+
+## 文档必须包含的章节
+无论使用哪个模板，技术文档至少包含：
+1. 标题和作者
+2. 修改历史（日期、修改人、修改内容）
+3. 背景与目标
+4. 方案设计
+5. 异常与降级
+6. 兼容性与影响
+7. 测试方案
+8. 发布与回滚
+
+## 文档质量要求
+- 方案描述必须具体可执行，不写"后续优化"这类模糊表述
+- 异常流必须列出每个可能的失败点和处理方式
+- 涉及数据变更必须说明迁移方案
+- 涉及接口变更必须说明兼容策略
+- 性能关键路径必须有量化指标（QPS/延迟/资源消耗）
+
+## 图表要求
+- 系统架构用架构图
+- 调用链路用时序图
+- 状态变化用状态机图
+- 数据流用流程图
+- 图表使用 Mermaid 或指向在线地址
+
+## 文档存放
+- 设计文档放在项目 docs/design/ 目录
+- 按需求/版本组织子目录
+- 文件名格式：YYYY-MM-DD-简短描述.md
+
+## 模板使用
+编写文档时必须使用 specs/templates/ 下对应的模板：
+- 需求规格 → requirement-spec-template.md
+- 技术设计 → technical-design-template.md
+- API 设计 → api-design-template.md
+- 表设计 → mysql-schema-template.md
+- Redis 设计 → redis-key-design-template.md
+- MQ 设计 → mq-topic-consumer-template.md
+- 发布计划 → release-plan-template.md
