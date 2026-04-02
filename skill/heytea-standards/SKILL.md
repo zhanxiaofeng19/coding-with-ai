@@ -25,7 +25,7 @@ Or execute each step manually:
 1. Clone the standards repo:
 
 ```bash
-git clone git@github.com:heytea/coding-with-ai.git .ai-standards
+git clone https://github.com/zhanxiaofeng19/coding-with-ai.git .ai-standards
 ```
 
 2. Copy rules so Cursor auto-loads them:

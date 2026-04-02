@@ -10,7 +10,7 @@
 
 ```bash
 # 克隆本仓库（如果还没有）
-git clone git@github.com:heytea/coding-with-ai.git ~/coding-with-ai
+git clone https://github.com/zhanxiaofeng19/coding-with-ai.git ~/coding-with-ai
 
 # 复制 Skill 到 Cursor 的 skills 目录
 cp -r ~/coding-with-ai/skill/heytea-standards ~/.cursor/skills/
@@ -42,7 +42,7 @@ Agent 会自动读取 Skill 并执行初始化脚本。
 ```bash
 bash ~/.cursor/skills/heytea-standards/scripts/setup.sh
 # 或指定仓库地址
-bash ~/.cursor/skills/heytea-standards/scripts/setup.sh git@github.com:heytea/coding-with-ai.git
+bash ~/.cursor/skills/heytea-standards/scripts/setup.sh https://github.com/zhanxiaofeng19/coding-with-ai.git
 ```
 
 ---

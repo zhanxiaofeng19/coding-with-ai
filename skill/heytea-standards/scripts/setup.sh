@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-REPO_URL="${1:-git@github.com:heytea/coding-with-ai.git}"
+REPO_URL="${1:-https://github.com/zhanxiaofeng19/coding-with-ai.git}"
 STANDARDS_DIR=".ai-standards"
 
 echo "=== Heytea AI-Coding Standards Setup ==="
